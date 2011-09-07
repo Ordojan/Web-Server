@@ -8,6 +8,8 @@ import java.io.IOException;
 import java.net.URISyntaxException;
 import java.net.URL;
 
+import server.ServerConfiguration.WebApplication;
+
 class FileManager implements IFileManager {
 	private File mimes;
 	private File vDirs;
@@ -16,13 +18,13 @@ class FileManager implements IFileManager {
 
 	public FileManager() throws URISyntaxException {
 		//		vDirs = new File(ServerCore.ROOT + "Data\\VDirs.dat");
-		File f = new File(ServerMain.class.getProtectionDomain().getCodeSource().getLocation().toURI().getPath());
-		serverConfig = new File(f.getParent() + "\\ServerConfig.dat");
+		File file = new File(ServerMain.class.getProtectionDomain().getCodeSource().getLocation().toURI().getPath());
+		serverConfig = new File(file.getParent() + "\\ServerConfig.dat");
 	}
 
 	@Override
 	public String getMimeType(String fileName) throws IOException {
-		mimes = new File(ServerCore.ROOT + "Data\\Mimes.dat");
+		mimes = new File(ServerCore.ServerCongiguration.WebApplication.Root + "Data\\Mimes.dat");
 
 		FileReader fileReader;
 		BufferedReader  reader;
@@ -66,7 +68,7 @@ class FileManager implements IFileManager {
 
 	@Override
 	public File getDefaultFile() throws IOException {
-		defaultF = new File(ServerCore.ROOT + "Data/Default.dat");
+		defaultF = new File(ServerCore.ServerCongiguration.WebApplication.Root + "Data/Default.dat");
 
 		FileReader fileReader;
 		BufferedReader reader;
@@ -79,7 +81,7 @@ class FileManager implements IFileManager {
 		while (reader.ready()) {
 			fileName = reader.readLine().trim();
 
-			file = new File(ServerCore.ROOT + fileName);
+			file = new File(ServerCore.ServerCongiguration.WebApplication.Root + fileName);
 
 			return file.exists() ? file : null;
 		}
@@ -114,13 +116,8 @@ class FileManager implements IFileManager {
 	}
 
 	@Override
-	public void setDefaultFile(String fileName) {
-		try {
-			save(defaultF, fileName);
-		} 
-		catch (IOException e) {
-			ServerCore.print("An Exception Occurred : " + e.toString());
-		}
+	public void setDefaultFile(String fileName) throws IOException {
+		save(defaultF, fileName);
 	}
 
 	@SuppressWarnings("unchecked")
@@ -145,7 +142,6 @@ class FileManager implements IFileManager {
 				line = reader.readLine().trim();
 
 				if (line.length() > 0) {
-					//find the separator
 					iStartPos = line.indexOf(';');
 
 					paramater = line.substring(0,iStartPos);
@@ -171,8 +167,16 @@ class FileManager implements IFileManager {
 			}
 
 			if (!root.isEmpty() && port != 0
-					&& httpApplicationClass != null)
-				config = new ServerConfiguration(root, port, httpApplicationClass);
+					&& httpApplicationClass != null) {
+				String serverRoot = ServerMain.class.getProtectionDomain().getCodeSource().getLocation().toURI().getPath();
+				config = new ServerConfiguration(serverRoot, port);
+
+				ServerConfiguration.WebApplication app = 
+						config.new WebApplication(root, httpApplicationClass);
+
+				config.WebApplication = app;
+			}
+
 		}
 		catch (Exception e) {
 			e.printStackTrace(System.err);
@@ -183,8 +187,10 @@ class FileManager implements IFileManager {
 
 	@Override
 	public void setServerConfiguration(ServerConfiguration configuration) throws IOException {
-		String data = ServerConfiguration.RootParamaterName + "; " + configuration.Root + "\r\n";
-		data += ServerConfiguration.PortParamaterName + "; " + configuration.Port + "\r\n";
+		String data = ServerConfiguration.PortParamaterName + "; " + configuration.Port + "\r\n";
+		data += "\r\n";
+		data += ServerConfiguration.RootParamaterName + "; " + configuration.WebApplication.Root + "\r\n";
+		data += ServerConfiguration.RootParamaterName + "; " + configuration.WebApplication.HttpApplicationClass + "\r\n";
 
 		save(serverConfig, data);
 	}

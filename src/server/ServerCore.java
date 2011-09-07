@@ -6,6 +6,7 @@ import java.io.InterruptedIOException;
 import java.io.UnsupportedEncodingException;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.net.SocketTimeoutException;
 import java.net.URLDecoder;
 import java.util.HashMap;
 import java.util.Locale;
@@ -19,6 +20,7 @@ import org.apache.http.HttpRequest;
 import org.apache.http.HttpResponse;
 import org.apache.http.HttpResponseInterceptor;
 import org.apache.http.HttpServerConnection;
+import org.apache.http.HttpStatus;
 import org.apache.http.MethodNotSupportedException;
 import org.apache.http.entity.FileEntity;
 import org.apache.http.impl.DefaultConnectionReuseStrategy;
@@ -46,27 +48,26 @@ import server.gui.IServerConsole;
 class ServerCore {
 	private static IServerConsole console;
 
-	private static int PORT;
-	protected static String ROOT;
+	public static ServerConfiguration ServerCongiguration;
 
 	private static IHttpModule httpModule;
 	public static IFileManager fileManager;
 
 	public ServerCore(IFileManager fileManager, ServerConfiguration config, 
 			IServerConsole serverConsole) throws IOException {
-		ServerCore.ROOT = config.Root;
-		ServerCore.PORT = config.Port;
+		ServerCongiguration = config;
 
 		console = serverConsole;
 		ServerCore.fileManager = fileManager;
 
 
 		console.printToScreen("The simple httpserver v. 0000000001\nCoded by Andrius Ordojan\r\n" +
-				"https://github.com/CombatCow\n\n");
+				"https://github.com/CombatCow\r\n");
 
-		console.printToScreen("Root folder: " + ServerCore.ROOT);
-
-		Thread thread = new RequestListenerThread(PORT);
+		print("Server running in directory: " + ServerCongiguration.ServerRoot);
+		print("Application running in directory: " + ServerCongiguration.WebApplication.Root);
+		
+		Thread thread = new RequestListenerThread(ServerCongiguration.Port);
 		thread.setDaemon(false);
 		thread.start();
 	}
@@ -157,8 +158,9 @@ class HttpFileHandler implements HttpRequestHandler {
 		String mimeType = ServerCore.fileManager.getMimeType(file.getName());
 		FileEntity body = new FileEntity(file, mimeType);
 
+		response.setStatusCode(HttpStatus.SC_OK);
 		response.setEntity(body);
-
+		
 		/*
 		final File file = new File(this.Root, URLDecoder.decode(target, "UTF-8"));
 
@@ -300,8 +302,8 @@ class RequestListenerThread extends Thread {
 					this.httpservice.handleRequest(this.conn, context);
 				}
 			} catch (ConnectionClosedException ex) {
-				ServerCore.print("Client closed connection");
-			} catch (IOException ex) {
+				ServerCore.print("Client closed connection\r\n" + ex.getMessage());
+			}catch (IOException ex) {
 				ServerCore.print("I/O error: " + ex.getMessage());
 			} catch (HttpException ex) {
 				ServerCore.print("Unrecoverable HTTP protocol violation: " + ex.getMessage());

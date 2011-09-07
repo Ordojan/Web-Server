@@ -14,21 +14,21 @@ public class ServerMain {
 		return ServerCore.fileManager.getDefaultFile();
 	}
 
-	public static void setDeafaultFile(String fileName) {
+	public static void setDeafaultFile(String fileName) throws IOException {
 		ServerCore.fileManager.setDefaultFile(fileName);
 	}
 
 	public static void main(String[] args) {
 		try {
 			IFileManager fileManager = new FileManager();
-			ServerConfiguration config = fileManager.getServerConfiguration();
+			ServerConfiguration serverConfig = fileManager.getServerConfiguration();
 
-			ServerMainWindow mainWindow = new ServerMainWindow(config, fileManager);
+			ServerMainWindow mainWindow = new ServerMainWindow(serverConfig, fileManager);
 
-			Method appStartMeth = config.HttpApplicationClass.getMethod("application_Start");
-			appStartMeth.invoke(config.HttpApplicationClass.newInstance());
+			Method appStartMeth = serverConfig.WebApplication.HttpApplicationClass.getMethod("application_Start");
+			appStartMeth.invoke(serverConfig.WebApplication.HttpApplicationClass.newInstance());
 
-			webServer = new ServerCore(fileManager, config, mainWindow.getServerConsole());
+			webServer = new ServerCore(fileManager, serverConfig, mainWindow.getServerConsole());
 			webServer.registerHttpModule(httpModule);
 			
 			mainWindow.setVisible(true);

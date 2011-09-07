@@ -37,7 +37,7 @@ public class ServerConfigurationWindow {
 		this.fileManager = fileManager;
 		initialize();
 
-		currentRoot = serverConfiguration.Root;
+		currentRoot = serverConfiguration.ServerRoot;
 		currentPort = serverConfiguration.Port;
 		tfRoot.setText(currentRoot);
 		tfPort.setText(String.valueOf(currentPort));
@@ -115,7 +115,7 @@ public class ServerConfigurationWindow {
 				String root = tfRoot.getText();
 				int port = Integer.parseInt(tfPort.getText().trim());
 				
-				config = new ServerConfiguration(root, port, null);
+				config = new ServerConfiguration(root, port);
 				
 				if(!root.equalsIgnoreCase(currentRoot) || port != currentPort) {
 					JOptionPane.showMessageDialog(frame,

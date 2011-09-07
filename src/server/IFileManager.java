@@ -7,7 +7,7 @@ import java.io.IOException;
 public interface IFileManager {
 	String getMimeType(String fileName) throws IOException;
 	File getDefaultFile() throws IOException;
-	void setDefaultFile(String fileName);
+	void setDefaultFile(String fileName) throws IOException;
 
 	boolean save(File file, String data) throws IOException;
 	String load(File file) throws FileNotFoundException, IOException;
