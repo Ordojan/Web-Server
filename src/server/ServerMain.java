@@ -1,9 +1,8 @@
 package server;
 
 import java.io.File;
+import java.io.IOException;
 import java.lang.reflect.Method;
-import java.net.URL;
-import java.net.URLClassLoader;
 
 import server.gui.ServerMainWindow;
 
@@ -11,7 +10,7 @@ public class ServerMain {
 	private static ServerCore webServer;
 	private static IHttpModule httpModule;
 
-	public static File getDeafaultFile() {
+	public static File getDeafaultFile() throws IOException {
 		return ServerCore.fileManager.getDefaultFile();
 	}
 

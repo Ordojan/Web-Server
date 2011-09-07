@@ -5,8 +5,8 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 
 public interface IFileManager {
-	String getMimeType(String fileName);
-	File getDefaultFile();
+	String getMimeType(String fileName) throws IOException;
+	File getDefaultFile() throws IOException;
 	void setDefaultFile(String fileName);
 
 	boolean save(File file, String data) throws IOException;

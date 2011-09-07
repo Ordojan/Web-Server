@@ -7,9 +7,6 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.net.URISyntaxException;
 import java.net.URL;
-import java.net.URLClassLoader;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 class FileManager implements IFileManager {
 	private File mimes;
@@ -17,29 +14,14 @@ class FileManager implements IFileManager {
 	private File defaultF;
 	private File serverConfig;
 
-	public FileManager() {
+	public FileManager() throws URISyntaxException {
 		//		vDirs = new File(ServerCore.ROOT + "Data\\VDirs.dat");
-		try {
-			File f = new File(ServerMain.class.getProtectionDomain().getCodeSource().getLocation().toURI().getPath());
-			serverConfig = new File(f.getParent() + "\\ServerConfig.dat");
-		} catch (URISyntaxException e) {
-			e.printStackTrace(System.err);
-		}
-
-		//		URL url = ServerMain.class.getResource("server.ServerMain");
-		//		Matcher matcher = Pattern.compile("jar:file:(.*)!.*").matcher(url.toString());
-		//		if (matcher.matches()) {
-		//			File file = new File(matcher.group(1));
-		//			File dir = file.getParentFile();
-		//
-		//			serverConfig = new File(dir + "\\ServerConfig.dat");
-		//		}
-		//		else
-		//			serverConfig = new File(getClass().getProtectionDomain().getCodeSource().getLocation().getPath() + "ServerConfig.dat");
+		File f = new File(ServerMain.class.getProtectionDomain().getCodeSource().getLocation().toURI().getPath());
+		serverConfig = new File(f.getParent() + "\\ServerConfig.dat");
 	}
 
 	@Override
-	public String getMimeType(String fileName) {
+	public String getMimeType(String fileName) throws IOException {
 		mimes = new File(ServerCore.ROOT + "Data\\Mimes.dat");
 
 		FileReader fileReader;
@@ -55,30 +37,25 @@ class FileManager implements IFileManager {
 
 		fileExtention = fileName.substring(iStartPos);
 
-		try	{
-			fileReader = new FileReader(mimes);
-			reader = new BufferedReader(fileReader);
+		fileReader = new FileReader(mimes);
+		reader = new BufferedReader(fileReader);
 
-			while (reader.ready()) {
-				line = reader.readLine().trim();
+		while (reader.ready()) {
+			line = reader.readLine().trim();
 
-				if (line.length() > 0) {
-					//find the separator
-					iStartPos = line.indexOf(';');
+			if (line.length() > 0) {
+				//find the separator
+				iStartPos = line.indexOf(';');
 
-					// Convert to lower case
-					line = line.toLowerCase();
+				// Convert to lower case
+				line = line.toLowerCase();
 
-					mimeExt = line.substring(0,iStartPos);
-					mimeType = line.substring(iStartPos + 1);
+				mimeExt = line.substring(0,iStartPos);
+				mimeType = line.substring(iStartPos + 1);
 
-					if (mimeExt.equals(fileExtention))
-						break;
-				}
+				if (mimeExt.equals(fileExtention))
+					break;
 			}
-		}
-		catch (Exception e) {
-			ServerCore.print("An Exception Occurred : " + e.toString());
 		}
 
 		if (mimeExt.equals(fileExtention))
@@ -88,7 +65,7 @@ class FileManager implements IFileManager {
 	}
 
 	@Override
-	public File getDefaultFile() {
+	public File getDefaultFile() throws IOException {
 		defaultF = new File(ServerCore.ROOT + "Data/Default.dat");
 
 		FileReader fileReader;
@@ -96,23 +73,15 @@ class FileManager implements IFileManager {
 		String fileName;
 		File file;
 
-		try {
-			fileReader = new FileReader(defaultF);
-			reader = new BufferedReader(fileReader);
+		fileReader = new FileReader(defaultF);
+		reader = new BufferedReader(fileReader);
 
-			while (reader.ready()) {
-				fileName = reader.readLine().trim();
+		while (reader.ready()) {
+			fileName = reader.readLine().trim();
 
-				file = new File(ServerCore.ROOT + fileName);
+			file = new File(ServerCore.ROOT + fileName);
 
-				if (!file.exists()) 
-					return null;
-
-				return file;
-			}
-		}
-		catch (Exception e) {
-			ServerCore.print("An Exception Occurred : " + e.toString());
+			return file.exists() ? file : null;
 		}
 
 		return null;
@@ -193,7 +162,7 @@ class FileManager implements IFileManager {
 							JarFileLoader jarloader = new JarFileLoader(urls);
 							jarloader.addFile(path);
 
-							httpApplicationClass = (Class<HttpApplication>) jarloader.loadClass (value.trim());
+							httpApplicationClass = (Class<HttpApplication>) jarloader.loadClass(value.trim());
 						}
 						else
 							throw new IllegalArgumentException();
@@ -212,18 +181,11 @@ class FileManager implements IFileManager {
 		return config;
 	}
 
-	@SuppressWarnings("static-access")
 	@Override
-	public void setServerConfiguration(ServerConfiguration configuration) throws Exception{
-		String data = configuration.RootParamaterName + "; " + configuration.Root + "\r\n";
-		data += configuration.PortParamaterName + "; " + configuration.Port + "\r\n";
+	public void setServerConfiguration(ServerConfiguration configuration) throws IOException {
+		String data = ServerConfiguration.RootParamaterName + "; " + configuration.Root + "\r\n";
+		data += ServerConfiguration.PortParamaterName + "; " + configuration.Port + "\r\n";
 
-		try {
-			save(serverConfig, data);
-		} 
-		catch (IOException e) {
-			ServerCore.print("An Exception Occurred : " + e.toString());
-			throw e;
-		}
+		save(serverConfig, data);
 	}
 }

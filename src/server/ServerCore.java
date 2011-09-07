@@ -76,10 +76,12 @@ class ServerCore {
 	}
 
 	public void registerHttpModule(IHttpModule module) {
+		if (module == null) throw new IllegalArgumentException();
+		
 		ServerCore.httpModule = module;
 	}
 
-	public static File getResponse() {
+	public static File getResponse() throws IOException {
 		httpModule.beginRequest();
 
 		return httpModule.endRequest();
