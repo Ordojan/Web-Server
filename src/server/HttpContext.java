@@ -6,8 +6,9 @@ import java.util.Map;
 public class HttpContext {
 	private static Map<String, String> formCollection;
 	
-	public static String URL;
+	public static String RequestedFile;
 	public static String RequestMethod;
+	public static String VirtualPath;
 	
 	static {
 		formCollection = new HashMap<String, String>();

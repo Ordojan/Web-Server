@@ -8,23 +8,74 @@ import java.io.IOException;
 import java.net.URISyntaxException;
 import java.net.URL;
 
-import server.ServerConfiguration.WebApplication;
-
 class FileManager implements IFileManager {
-	private File mimes;
-	private File vDirs;
-	private File defaultF;
 	private File serverConfig;
 
 	public FileManager() throws URISyntaxException {
-		//		vDirs = new File(ServerCore.ROOT + "Data\\VDirs.dat");
 		File file = new File(ServerMain.class.getProtectionDomain().getCodeSource().getLocation().toURI().getPath());
 		serverConfig = new File(file.getParent() + "\\ServerConfig.dat");
 	}
 
+	/**
+	 * Returns the Physical Path
+	 * @param sMyWebServerRoot Web Server Root Directory
+	 * @param virtualDir Virtual Directory
+	 * @return Physical local Path
+	 * @throws IOException 
+	 */
+	@Override
+	public String getLocalPath(String virtualDir) throws IOException {
+		File vDirs = new File(ServerCore.ServerCongiguration.WebApplication.Root + "Data\\VDirs.dat");
+		
+		FileReader fileReader;
+		BufferedReader  reader;
+		String line = "";
+		String fileVirtualDir = ""; 
+		String fileRealDir = "";
+		int iStartPos = 0;
+
+		virtualDir = virtualDir.trim();
+
+		//		sMyWebServerRoot = sMyWebServerRoot.ToLower();
+
+		//		virtualDir = virtualDir.ToLower();
+
+		//sDirName = sDirName.Substring(1, sDirName.Length - 2);
+
+		fileReader = new FileReader(vDirs);
+		reader = new BufferedReader(fileReader);
+
+		while(reader.ready()) {
+			line = reader.readLine();
+			line.trim();
+
+			if (line.length() > 0) {
+				iStartPos = line.indexOf(";");
+
+				line = line.toLowerCase();
+
+				fileVirtualDir = line.substring(0,iStartPos);
+				fileRealDir = line.substring(iStartPos + 1);
+
+				if (fileVirtualDir.equals(virtualDir)) {
+					break;
+				}
+			}
+		}
+
+		ServerCore.print("Virtual Dir : " + fileVirtualDir);
+		ServerCore.print("Directory   : " + virtualDir);
+		ServerCore.print("Physical Dir: " + fileRealDir);
+		
+		if (fileVirtualDir.equals(virtualDir))
+			return fileRealDir;
+		else
+			return virtualDir;
+	}
+
 	@Override
 	public String getMimeType(String fileName) throws IOException {
-		mimes = new File(ServerCore.ServerCongiguration.WebApplication.Root + "Data\\Mimes.dat");
+		File mimes = new File(ServerCore.ServerCongiguration.WebApplication.Root + "Data\\Mimes.dat");
 
 		FileReader fileReader;
 		BufferedReader  reader;
@@ -68,7 +119,7 @@ class FileManager implements IFileManager {
 
 	@Override
 	public File getDefaultFile() throws IOException {
-		defaultF = new File(ServerCore.ServerCongiguration.WebApplication.Root + "Data/Default.dat");
+		File defaultF = new File(ServerCore.ServerCongiguration.WebApplication.Root + "Data/Default.dat");
 
 		FileReader fileReader;
 		BufferedReader reader;
@@ -117,6 +168,8 @@ class FileManager implements IFileManager {
 
 	@Override
 	public void setDefaultFile(String fileName) throws IOException {
+		File defaultF = new File(ServerCore.ServerCongiguration.WebApplication.Root + "Data/Default.dat");
+		
 		save(defaultF, fileName);
 	}
 

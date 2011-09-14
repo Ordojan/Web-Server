@@ -6,7 +6,6 @@ import java.io.InterruptedIOException;
 import java.io.UnsupportedEncodingException;
 import java.net.ServerSocket;
 import java.net.Socket;
-import java.net.SocketTimeoutException;
 import java.net.URLDecoder;
 import java.util.HashMap;
 import java.util.Locale;
@@ -60,13 +59,12 @@ class ServerCore {
 		console = serverConsole;
 		ServerCore.fileManager = fileManager;
 
-
-		console.printToScreen("The simple httpserver v. 0000000001\nCoded by Andrius Ordojan\r\n" +
+		console.printToScreen("The simple Http Server\r\nCoded by Andrius Ordojan\r\n" +
 				"https://github.com/CombatCow\r\n");
 
 		print("Server running in directory: " + ServerCongiguration.ServerRoot);
 		print("Application running in directory: " + ServerCongiguration.WebApplication.Root);
-		
+
 		Thread thread = new RequestListenerThread(ServerCongiguration.Port);
 		thread.setDaemon(false);
 		thread.start();
@@ -78,7 +76,7 @@ class ServerCore {
 
 	public void registerHttpModule(IHttpModule module) {
 		if (module == null) throw new IllegalArgumentException();
-		
+
 		ServerCore.httpModule = module;
 	}
 
@@ -128,6 +126,10 @@ class HttpFileHandler implements HttpRequestHandler {
 
 	public void handle(final HttpRequest request, final HttpResponse response,
 			final HttpContext context) throws HttpException, IOException {
+		String localDirectory;
+		String virtualDirectory;
+		String requestedFile;
+		int iStartPos = 0;
 
 		String method = request.getRequestLine().getMethod().toUpperCase(Locale.ENGLISH);
 		server.HttpContext.RequestMethod = method;
@@ -140,9 +142,24 @@ class HttpFileHandler implements HttpRequestHandler {
 			throw new MethodNotSupportedException(method + " method not supported"); 
 		}
 
-		String target = request.getRequestLine().getUri();
-		server.HttpContext.URL = target;
-		ServerCore.print("Client request. " + target);
+		String uri = request.getRequestLine().getUri();
+
+		if ((uri.indexOf(".") < 1) && (!uri.endsWith("/"))) {
+			uri = uri + "/"; 
+		}
+
+		virtualDirectory = uri;
+
+		server.HttpContext.VirtualPath = virtualDirectory;
+
+		localDirectory = ServerCore.fileManager.getLocalPath(virtualDirectory);
+		
+		iStartPos = localDirectory.lastIndexOf("\\") + 1;
+		requestedFile = localDirectory.substring(iStartPos);
+		
+		server.HttpContext.RequestedFile = requestedFile;
+		
+		ServerCore.print("Directory Requested : " +  localDirectory);
 
 		if (request instanceof HttpEntityEnclosingRequest) {
 			HttpEntity entity = ((HttpEntityEnclosingRequest) request).getEntity();
@@ -160,7 +177,7 @@ class HttpFileHandler implements HttpRequestHandler {
 
 		response.setStatusCode(HttpStatus.SC_OK);
 		response.setEntity(body);
-		
+
 		/*
 		final File file = new File(this.Root, URLDecoder.decode(target, "UTF-8"));
 
