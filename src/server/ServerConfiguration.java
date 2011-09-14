@@ -18,7 +18,7 @@ public class ServerConfiguration {
 	public class WebApplication {
 		final String Root;
 		final Class<HttpApplication> HttpApplicationClass;
-
+		
 		public WebApplication(String root, Class<HttpApplication> httpApplicationClass) {
 			Root = root;
 			HttpApplicationClass = httpApplicationClass;

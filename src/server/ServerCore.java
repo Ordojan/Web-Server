@@ -80,8 +80,8 @@ class ServerCore {
 		ServerCore.httpModule = module;
 	}
 
-	public static File getResponse() throws IOException {
-		httpModule.beginRequest();
+	public static File getResponse(server.HttpContext httpContext) throws IOException {
+		httpModule.beginRequest(httpContext);
 
 		return httpModule.endRequest();
 	}
@@ -130,9 +130,10 @@ class HttpFileHandler implements HttpRequestHandler {
 		String virtualDirectory;
 		String requestedFile;
 		int iStartPos = 0;
-
+		server.HttpContext httpContext = new server.HttpContext();
+		
 		String method = request.getRequestLine().getMethod().toUpperCase(Locale.ENGLISH);
-		server.HttpContext.RequestMethod = method;
+		httpContext.setRequestMethod(method);
 
 		if (!method.equals(HttpRequestMethods.HttpMethod_GET) 
 				&& !method.equals(HttpRequestMethods.HttpMethod_HEAD) 
@@ -150,14 +151,14 @@ class HttpFileHandler implements HttpRequestHandler {
 
 		virtualDirectory = uri;
 
-		server.HttpContext.VirtualPath = virtualDirectory;
+		httpContext.setVirtualPath(virtualDirectory);
 
 		localDirectory = ServerCore.fileManager.getLocalPath(virtualDirectory);
 		
 		iStartPos = localDirectory.lastIndexOf("\\") + 1;
 		requestedFile = localDirectory.substring(iStartPos);
 		
-		server.HttpContext.RequestedFile = requestedFile;
+		httpContext.setRequestedFile(requestedFile);
 		
 		ServerCore.print("Directory Requested : " +  localDirectory);
 
@@ -166,12 +167,12 @@ class HttpFileHandler implements HttpRequestHandler {
 			byte[] entityContent = EntityUtils.toByteArray(entity);
 
 			Map<String, String> formCollection = parsePostContent(entityContent);
-			server.HttpContext.setFormCollection(formCollection);
+			httpContext.setFormCollection(formCollection);
 
 			ServerCore.print("Incoming entity content (bytes): " + entityContent.length);
 		}
 
-		File file = ServerCore.getResponse();
+		File file = ServerCore.getResponse(httpContext);
 		String mimeType = ServerCore.fileManager.getMimeType(file.getName());
 		FileEntity body = new FileEntity(file, mimeType);
 
