@@ -1,0 +1,52 @@
+A simple web server I started writing after we started learning about sockets in university.
+This was before I learned about servlets or jsp, so they aren't compatible with the current version.
+
+At the root of the server there should be a "ServerConfig.Dat" file. 
+It contains the port which the server will be listing for connections on.
+The root of the web application that will be run and the full name of 
+the class which subclasses the HttpApplication.java class.
+The syntax for the file is <Attribute>; <Value>.
+so it would look like this:
+----------------------------------------------
+port; 4711
+
+root; D:/Programing/Java/SampleWebApp/
+HttpApplication_Class; application.BootStrap
+----------------------------------------------
+
+In this case the server would call the "application_Start" method from the BootStrap class when it starts.
+
+
+The server will look for a Data folder in the root directory of the web application.
+This folder should contain three files Default.dat, Mimes.dat, VDirs.dat.
+
+Default.dat - contains the name of the default file the server will send.
+For example
+----------------------------------------------
+Index.html
+----------------------------------------------
+
+Mimes.dat - Will have the mime types that are supported by the web server.
+Syntax:  <EXTENSION>; <MIME Type>
+Example.
+----------------------------------------------
+.html; text/html 
+.htm; text/html 
+.gif; image/gif
+.bmp; image/bmp
+----------------------------------------------
+			
+VDirs.Dat - Will have the virtual directory Information. 
+Syntax: <VirtualDir>; <PhysicalDir>  		
+Example.
+----------------------------------------------
+/Register/; \RegisterForm.hmtl
+----------------------------------------------		
+
+
+To work the web application also needs to register a HttpModule (it's a class that implements the IHttpModule interface).
+This should preferable be done in the "application_Start" method of HttpApplication_Class. 
+It's required so the application can handle HTTP requests.
+
+The HttpModule will be provided a HttpContext class for every request. 
+The HttpContext class contains all HTTP-specific information about an individual HTTP request.
